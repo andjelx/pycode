@@ -52,7 +52,8 @@ def new_status_id(status, actions):
 
 # Main
 
-campaigns = client.campaign.all()['campaigns']
+ti = client.campaign.all()['total_items']
+campaigns = client.campaign.all(count=ti)['campaigns']
 sc = {} # Sorted campaigns
 # Make sorted list of campaigns based on send_time and status == sent
 for i,cam in enumerate(sorted(campaigns, key=lambda x: x['send_time'], reverse=True)):
@@ -67,6 +68,7 @@ if len(sys.argv) >= 2:
         print("Suppply --last to the scipt to process last campaign or no parameters")
         quit()
 else:
+    print("Found %s campaigns" % len(sc))
     print("Select campaign to process:")
     for i, cam in sc.items()[0:10]:
         print("[%s] %s sent on %s" %(i, cam['settings']['title'], cam['send_time']))
@@ -85,10 +87,11 @@ if c:
     list_id = c['recipients']['list_id']
 
     # Filling 2 dicts with data about clients
-    for cl in client.member.all(list_id)['members']:
+    ti = client.member.all(list_id)['total_items']
+    for cl in client.member.all(list_id, count=ti)['members']:
         cl_status[cl['email_address']] = cl['merge_fields'][LEAD_FIELD]
         cl_ids[cl['email_address']] = cl['id']
-   
+  
     for a in client.reportactivity.all(c_id)['emails']:
         rcpt = a['email_address']
         status = cl_status[rcpt]
